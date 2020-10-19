@@ -1,6 +1,7 @@
 module Main where
 import Lexer
 import Parser
+import Spec
 
 
 main :: IO ()

@@ -71,7 +71,7 @@ data DType  = DTInt
              | DTBool
              | DTString
              | DTDouble
-             |DTZip
+             | DTZip
              | None
                deriving (Show, Eq)
 
