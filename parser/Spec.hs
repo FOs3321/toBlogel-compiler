@@ -14,14 +14,15 @@ module Spec where
 
 data DExpr  = DFunAp DFun  [DExpr ] DType
             | DCExp DConst  DType
+            | DIf DExpr DExpr DExpr  DType
+            | IfNone
             --  | DCmprhnsnExp DExpr [(DVar,DExpr)]
-            --  | DChoiceVID  [Int] DType
-            --  | DIf DExpr DExpr DExpr  DType
+            --  | DChoiceVID  [Int] DType 
             --  | DAggr DAgg DExpr DGen  [DIn ] DType
             --  | DVExp DVar DType
             
             --  | DFunCall DFun DVar  DType
-            --  | IfNone
+             
            deriving (Show, Eq)
 
 data DFun   = DFun String

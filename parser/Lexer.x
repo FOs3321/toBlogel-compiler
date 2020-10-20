@@ -29,6 +29,14 @@ tokens :-
     "!!"                            { \_ -> TokenOr }
     "&&"                            { \_ -> TokenAnd }
 
+    "{"                             { \_ -> TokenLBrace }
+    "}"                             { \_ -> TokenRBrace }
+
+    "if"                            { \_ -> TokenIf }
+    "then"                          { \_ -> TokenThen }
+    "else"                          { \_ -> TokenElse }
+
+
     ">=" | "<=" | ">" | "<" | "==" | "!="   { \s -> TokenCmp s }
 
 
@@ -53,5 +61,10 @@ data Token = TokenInt Int
            | TokenNot
            | TokenOr
            | TokenAnd
+           | TokenLBrace
+           | TokenRBrace
+           | TokenIf
+           | TokenThen
+           | TokenElse
            deriving (Eq,Show)
 }

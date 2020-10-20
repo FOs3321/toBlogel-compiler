@@ -24,7 +24,13 @@ import Spec
     CMP     { TokenCmp $$ }
     "!!"    { TokenOr }
     "&&"    { TokenAnd }
-    
+
+    '{'     { TokenLBrace }
+    '}'     { TokenRBrace }
+    "if"    { TokenIf }
+    "then"  { TokenThen }
+    "else"  { TokenElse }   
+     
     UPPER   { TokenUpper $$ }
     STRING  { TokenString $$ }
 
@@ -36,7 +42,11 @@ import Spec
 %left '*' '/'
 
 %%
-expr       : expr3               { $1 }
+expr       : expr4               { $1 }
+
+expr4       : "if" '(' expr3 ')' "then" '{' expr3 '}' "else" '{' expr3 '}'  { DIf $3 $7 $11 None }
+            | "if" '(' expr3 ')' "then" '{' expr3 '}'                       { DIf $3 $7 IfNone None }
+            | expr3                                                         { $1 }
 
 
 expr3       : expr3 "!!" expr3     { DFunAp (DBinOp "||") [$1, $3] None }
