@@ -35,6 +35,11 @@ tokens :-
     "if"                            { \_ -> TokenIf }
     "then"                          { \_ -> TokenThen }
     "else"                          { \_ -> TokenElse }
+    "while"                         { \_ -> TokenWhile }
+    "return"                        { \_ -> TokenReturn }
+
+    ";"                             { \_ -> TokenSemiColon }
+    "="                             { \_ -> TokenEqual }
 
 
     ">=" | "<=" | ">" | "<" | "==" | "!="   { \s -> TokenCmp s }
@@ -66,5 +71,9 @@ data Token = TokenInt Int
            | TokenIf
            | TokenThen
            | TokenElse
+           | TokenWhile
+           | TokenSemiColon
+           | TokenEqual
+           | TokenReturn
            deriving (Eq,Show)
 }
