@@ -20,7 +20,6 @@ data DExpr  = DFunAp DFun  [DExpr ] DType
             --  | DChoiceVID  [Int] DType 
             --  | DAggr DAgg DExpr DGen  [DIn ] DType
             --  | DVExp DVar DType
-            
             --  | DFunCall DFun DVar  DType
              
            deriving (Show, Eq)
@@ -35,6 +34,26 @@ data DVar = DVar String Int DType
           | DLoop String Int
           | DVarNull
           deriving (Show, Eq)
+
+data DGen = DGenNvals DVar  DExpr  DType
+          | DGenG DVar  DExpr  DType
+          | DGenNvalsV DVar  DConst  DType
+          | DGenGV DVar  DConst  DType 
+          deriving (Show, Eq)
+
+data DIn =  DIn DVar  DExpr  DType deriving (Show, Eq)
+data DField = DField String  deriving (Show, Eq)
+data DAgg = DAggMin
+             | DAggMax
+             | DAggSum
+             | DAggProd
+             | DAggAnd
+             | DAggOr
+             | DAggChoice
+             deriving (Show, Eq)
+
+data DConstructor = DConstructor String  deriving (Show, Eq)
+
 
 data DConst = DCInt Int  DType
             | DCBool Bool  DType

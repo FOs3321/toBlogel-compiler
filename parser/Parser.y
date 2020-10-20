@@ -49,7 +49,7 @@ import Spec
 
 programSpec : mainDef funDefs                   { DProgram $1 $2 }
 
-funDefs     : funDef                            { [$1] }
+funDefs     : {- empty -}                       { [] }
             | funDefs funDef                    { $2 : $1 }
 
 funDef      : var '=' expr ';'                  { DFunDef $1 $3 }
