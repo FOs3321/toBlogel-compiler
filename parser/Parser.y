@@ -21,22 +21,28 @@ import Spec
     '-'     { TokenMinus }
     '*'     { TokenMul }
     '/'     { TokenDev }
-    CMP     { TokenBinOp $$ }
+    CMP     { TokenCmp $$ }
+    "!!"    { TokenOr }
+    "&&"    { TokenAnd }
     
     UPPER   { TokenUpper $$ }
     STRING  { TokenString $$ }
 
+
+%left "!!"
+%left "&&"
 %left CMP
 %left '+' '-'
 %left '*' '/'
 
 %%
-expr        : expr4               { $1 }
+expr       : expr3               { $1 }
 
-expr4       : expr4 CMP expr4     { DFunAp (DBinOp $2) [$1, $3] None }
-            | expr3               { $1 }
 
-expr3       : expr3 '+' expr3     { DFunAp (DBinOp "+") [$1, $3] None }
+expr3       : expr3 "!!" expr3     { DFunAp (DBinOp "||") [$1, $3] None }
+            | expr3 "&&" expr3     { DFunAp (DBinOp "&&") [$1, $3] None }
+            | expr3 CMP expr3     { DFunAp (DBinOp $2) [$1, $3] None }
+            | expr3 '+' expr3     { DFunAp (DBinOp "+") [$1, $3] None }
             | expr3 '-' expr3     { DFunAp (DBinOp "-") [$1, $3] None }
             | expr3 '*' expr3     { DFunAp (DBinOp "*") [$1, $3] None }
             | expr3 '/' expr3     { DFunAp (DBinOp "/") [$1, $3] None }

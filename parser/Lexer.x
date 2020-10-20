@@ -26,13 +26,10 @@ tokens :-
     "/"                             { \_ -> TokenDev }
     "empty"                         { \_ -> TokenEmpty }
     "not"                           { \_ -> TokenNot }
+    "!!"                            { \_ -> TokenOr }
+    "&&"                            { \_ -> TokenAnd }
 
-    ">="                            { \s -> TokenBinOp s }
-    "<="                            { \s -> TokenBinOp s } 
-    ">"                             { \s -> TokenBinOp s }
-    "<"                             { \s -> TokenBinOp s }
-    "=="                            { \s -> TokenBinOp s }
-    "!="                            { \s -> TokenBinOp s }
+    ">=" | "<=" | ">" | "<" | "==" | "!="   { \s -> TokenCmp s }
 
 
     $upper "'"*                     { \s -> TokenUpper s}
@@ -52,7 +49,9 @@ data Token = TokenInt Int
            | TokenDev
            | TokenUpper String
            | TokenString String
-           | TokenBinOp String
+           | TokenCmp String
            | TokenNot
+           | TokenOr
+           | TokenAnd
            deriving (Eq,Show)
 }
