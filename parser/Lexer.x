@@ -25,6 +25,15 @@ tokens :-
     "*"                             { \_ -> TokenMul }
     "/"                             { \_ -> TokenDev }
     "empty"                         { \_ -> TokenEmpty }
+    "not"                           { \_ -> TokenNot }
+
+    ">="                            { \s -> TokenBinOp s }
+    "<="                            { \s -> TokenBinOp s } 
+    ">"                             { \s -> TokenBinOp s }
+    "<"                             { \s -> TokenBinOp s }
+    "=="                            { \s -> TokenBinOp s }
+    "!="                            { \s -> TokenBinOp s }
+
 
     $upper "'"*                     { \s -> TokenUpper s}
     $alpha [$alpha $digit \_ \"]*   { \s -> TokenString s}
@@ -43,5 +52,7 @@ data Token = TokenInt Int
            | TokenDev
            | TokenUpper String
            | TokenString String
+           | TokenBinOp String
+           | TokenNot
            deriving (Eq,Show)
 }
