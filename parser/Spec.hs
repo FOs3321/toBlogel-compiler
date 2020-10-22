@@ -16,10 +16,10 @@ data DExpr  = DFunAp DFun  [DExpr ] DType
             | DCExp DConst  DType
             | DIf DExpr DExpr DExpr  DType
             | IfNone
-            --  | DCmprhnsnExp DExpr [(DVar,DExpr)]
-            --  | DChoiceVID  [Int] DType 
-            --  | DAggr DAgg DExpr DGen  [DIn ] DType
-            --  | DVExp DVar DType
+            | DCmprhnsnExp DExpr [(DVar,DExpr)]
+            | DChoiceVID  [Int] DType 
+            | DAggr DAgg DExpr DGen  [DIn ] DType
+            | DVExp DVar DType
             --  | DFunCall DFun DVar  DType
              
            deriving (Show, Eq)

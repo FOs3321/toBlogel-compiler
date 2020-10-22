@@ -3,7 +3,6 @@ import Lexer
 import Parser
 import Spec
 
-
 main :: IO ()
 main = do
     p <- getContents

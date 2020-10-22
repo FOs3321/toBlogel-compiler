@@ -29,8 +29,10 @@ tokens :-
     "!!"                            { \_ -> TokenOr }
     "&&"                            { \_ -> TokenAnd }
 
-    "{"                             { \_ -> TokenLBrace }
-    "}"                             { \_ -> TokenRBrace }
+    "{"                             { \_ -> TokenLCurly }
+    "}"                             { \_ -> TokenRCurly }
+    "["                             { \_ -> TokenLBrack }
+    "]"                             { \_ -> TokenRBrack}
 
     "if"                            { \_ -> TokenIf }
     "then"                          { \_ -> TokenThen }
@@ -43,6 +45,22 @@ tokens :-
 
 
     ">=" | "<=" | ">" | "<" | "==" | "!="   { \s -> TokenCmp s }
+
+    "minimum"                       { \_ -> TokenAggMin }
+    "maximum"                       { \_ -> TokenAggMax }
+    "sum"                           { \_ -> TokenAggSum }
+    "prod"                          { \_ -> TokenAggProd }
+    "and"                           { \_ -> TokenAggAnd }
+    "or"                            { \_ -> TokenAggOr } 
+    "<-"                            { \_ -> TokenLArrow }
+    "in"                            { \_ -> TokenIn } 
+    "nvals"                         { \_ -> TokenNvals }
+    ","                             { \_ -> TokenComma }
+    "|"                             { \_ -> TokenVbar }
+
+
+    "<-" $white* "nvals" $white* "V"{ \_ -> TokenGenNvalsV }
+    "<-" $white* "V"                { \_ -> TokenGenV }
 
 
     $upper "'"*                     { \s -> TokenUpper s}
@@ -66,8 +84,8 @@ data Token = TokenInt Int
            | TokenNot
            | TokenOr
            | TokenAnd
-           | TokenLBrace
-           | TokenRBrace
+           | TokenLCurly
+           | TokenRCurly
            | TokenIf
            | TokenThen
            | TokenElse
@@ -75,5 +93,20 @@ data Token = TokenInt Int
            | TokenSemiColon
            | TokenEqual
            | TokenReturn
+           | TokenAggMin
+           | TokenAggMax
+           | TokenAggSum
+           | TokenAggProd 
+           | TokenAggAnd
+           | TokenAggOr
+           | TokenLArrow 
+           | TokenIn
+           | TokenNvals
+           | TokenComma
+           | TokenLBrack
+           | TokenRBrack
+           | TokenVbar
+           | TokenGenV
+           | TokenGenNvalsV
            deriving (Eq,Show)
 }
