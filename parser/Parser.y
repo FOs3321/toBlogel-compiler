@@ -50,8 +50,6 @@ import Spec
     ']'         { TokenRBrack }
     '|'         { TokenVbar }
 
-    '<-nvalsV'  { TokenGenNvalsV }
-    '<-V'       { TokenGenV }
 
     UPPER       { TokenUpper $$ }
     STRING      { TokenString $$ }
@@ -138,11 +136,8 @@ agg     : 'minimum'         { DAggMin }
         | 'and'             { DAggAnd }
         | 'or'              { DAggOr }
 
-gen     : var '<-' 'nvals' expr1 { DGenNvals $1 $4 None }
-        | var '<-'  expr1        { DGenG $1 $3 None }
-        | var '<-nvalsV'         { DGenNvalsV $1 DCAllV  None } 
-        | var '<-V'              { DGenGV $1 DCAllV None }
-         
+gen     : var '<-' 'nvals' expr1 { if ($4 == (DCExp DCAllV None)) then ( DGenNvalsV $1 DCAllV  None ) else ( DGenNvals $1 $4 None )  }
+        | var '<-'  expr1        { if ($3 == (DCExp DCAllV None)) then ( DGenGV $1 DCAllV  None ) else ( DGenG $1 $3 None ) }
 
 const   : INT               { DCInt $1 DTInt }
         | DOUBLE            { DCDouble $1 DTDouble }

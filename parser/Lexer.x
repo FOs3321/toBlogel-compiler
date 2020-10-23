@@ -59,10 +59,6 @@ tokens :-
     "|"                             { \_ -> TokenVbar }
 
 
-    "<-" $white* "nvals" $white* "V"{ \_ -> TokenGenNvalsV }
-    "<-" $white* "V"                { \_ -> TokenGenV }
-
-
     $upper "'"*                     { \s -> TokenUpper s}
     $alpha [$alpha $digit \_ \"]*   { \s -> TokenString s}
 
