@@ -1,23 +1,24 @@
 module Spec where
-import           Data.Char
+import Data.Char
+import Data.List
 
 data DProgram = DProgram DMainDef   [DFunDef ]  deriving (Show, Eq)
 data DMainDef = DMainDef DFun  [DStatement ]  deriving (Show, Eq)
 data DFunDef = DFunDef DVar  DExpr  deriving (Show, Eq)
 
-data DStatement = DLoopDef DExpr  [DStatement ] DType Int [DVar]
+data DStatement = DLoopDef DExpr  [DStatement]
                 | DIfDef DExpr [DStatement] [DStatement]
-                | DVarDef  DVar  DExpr DType
-                | DReturnDef DVar  DType
-                | DZip DVar DVar DVar
-                | DFunAP DVar String DVar
+                | DVarDef  DVar DExpr
+                | DReturnDef DVar
+                -- | DZip DVar DVar DVar
+                -- | DFunAP DVar String DVar
                 deriving (Show, Eq)
 
 data DExpr  = DFunAp DFun  [DExpr ] DType
             | DCExp DConst  DType
             | DIf DExpr DExpr DExpr  DType
             | IfNone
-            | DCmprhnsnExp DExpr [(DVar,DExpr)]
+            | DCmprhnsnExp DExpr [(DVar,DExpr)] DType
             | DChoiceVID  [Int] DType 
             | DAggr DAgg DExpr DGen  [DIn ] DType
             | DVExp DVar DType
@@ -31,7 +32,7 @@ data DFun   = DFun String
 
 data DVar = DVar String Int DType
           | DVarV String Int
-          | DFunV String DVar
+          | DFunV String DVar DType
           | DLoop String Int
           | DVarNull
           deriving (Show, Eq)
@@ -51,7 +52,7 @@ data DAgg = DAggMin
              | DAggAnd
              | DAggOr
              | DAggChoice
-             deriving (Show, Eq)
+          deriving (Show, Eq)
 
 data DConstructor = DConstructor String  deriving (Show, Eq)
 
@@ -70,35 +71,52 @@ data DType  = DTInt
             | DTDouble
             | DTZip
             | None
+            | DTVar String
+            | DTFun [DType] DType
             deriving (Show, Eq)
 
+class Expression a where
+    getType :: a -> DType
+
+
+getName :: DProgram -> String
+getName (DProgram (DMainDef (DFun pn) _) _) = pn
+
+
+isNvals :: DExpr -> Bool
+isNvals (DAggr _ _ (DGenNvals{}) _ _) = True
+isNvals _ = False
 
 getFun :: DFun -> String
 getFun (DFun str ) =str;
 getFun (DBinOp str ) =str;
 
-getTypeExpr::DExpr ->DType
-getTypeExpr (DFunAp _ _ etype)  =etype;
-getTypeExpr (DVExp _ etype)  = etype;
+instance Expression DExpr where
+    getType (DFunAp _ _ t) = t
+    getType (DVExp _ t) = t
+    getType (DAggr _ _ _ _ t) = t
+    getType (DCExp _ t ) = t
+    getType (DCmprhnsnExp _ _ t) = t
+    getType (DIf _ _ _ t) = t
+    getType (DChoiceVID _ t) = t
 
-getTypeExpr (DAggr _ _ _ _ etype)  = etype;
-getTypeExpr (DCExp _ etype )  = etype ;
+instance Expression DVar where
+    getType (DVar _  _ t) = t
+    getType DVarV{} = DTBool
+    getType (DFunV _ _ t) = t
 
-getTypeExpr (DIf _ _ _ etype)=etype;
-getTypeExpr (DChoiceVID _ etype) =etype;
+instance Expression DConst where
+    getType DCDouble{} = DTDouble
+    getType DCBool {} = DTBool
+    getType DCInt{} = DTInt
+    getType DCString {} = DTString
+    getType DCAllV{} = DTBool
+    getType DCEmpty{} = DTBool
 
-getTypeVar::DVar ->DType
-getTypeVar (DVar _  _ vtype )=vtype;
-getTypeVar DVarV{}=DTBool;
-
-
-getTypeC::DConst ->DType
-getTypeC DCDouble{} =DTDouble ;
-getTypeC DCBool {} = DTBool ;
-getTypeC DCInt{} =DTInt ;
-getTypeC DCString {} = DTString ;
-getTypeC DCAllV{} =DTBool ;
-getTypeC DCEmpty{} =DTBool ;
+setType :: DVar -> DType -> DVar
+setType (DVar v i _) t = DVar v i t
+setType (DFunV f p _) t = DFunV f p t 
+setType v@DVarV{} _ = v
 
 analizeExpr :: DExpr ->[DVar]
 analizeExpr (DIf expr1 expr2 expr3 _)= analizeExpr expr1++analizeExpr expr2++analizeExpr expr3;
@@ -132,7 +150,39 @@ genVarg (DVarV str  vNum) =map toLower str++"_"++show vNum;
 genVarName ::DVar -> String
 genVarName (DVar str _ _) = map toLower str;
 genVarName (DVarV str  _) = map toLower str;
-genVarName (DFunV str  _) = map toLower str;
+genVarName (DFunV str _ _) = map toLower str;
+getVarName ::DVar -> String
+getVarName (DVar str _ _) = str;
+getVarName (DVarV str  _) = str;
+getVarName (DFunV str _ _) = str;
+
+getAggName DAggMin = "min"
+getAggName DAggMax = "max"
+getAggName DAggSum = "sum"
+getAggName DAggProd = "prod"
+getAggName DAggAnd = "and"
+getAggName DAggOr = "or"
+getAggName DAggChoice = "chc"
+
+strExpr (DFunAp func exprs t) = "fn" ++ strT t ++ getFun func ++ concatMap strExpr exprs
+strExpr (DCExp const  t) = "c" ++ strT t ++ show const
+strExpr (DIf e1 e2 e3  t) = "if" ++ strT t ++ strExpr e1 ++ strExpr e2 ++ strExpr e3
+strExpr (IfNone) = "n"
+strExpr (DCmprhnsnExp e ins t) = "cm" ++ strT t ++ strExpr e ++ concatMap (strExpr . snd)  ins
+strExpr (DChoiceVID is t ) = "cv" ++ strT t ++ concatMap show is 
+strExpr (DAggr agg e gen ins t) = "ag" ++ strT t ++ strExpr e ++ strGen gen ++ concatMap strIn ins
+strExpr (DVExp v t) = getVarName v
+
+strT DTInt = "i"
+strT DTBool = "b"
+strT DTDouble ="d"
+strT DTString ="s"
+strT None ="n"
+
+strGen  (DGenNvals _ e t) = strExpr e
+strGen  (DGenG _ e t) = strExpr e
+
+strIn (DIn _ e _) = "_" ++ strExpr e
 
 genTypeCapR :: DType ->String
 genTypeCapR DTDouble = "D";
@@ -151,3 +201,27 @@ lookup3  key ((x,y,z):xys)
     | key == z          =  Just y
     | otherwise         =  lookup3 key xys
 
+
+dependedVars :: DExpr -> [DVar]
+dependedVars e = nub $ dependedVars' e
+
+dependedVars' :: DExpr -> [DVar]
+dependedVars' (DAggr _ e gen ins _) = dependedVars' e ++ depGen gen ++ concatMap depIn ins
+dependedVars' (DFunAp _ es _) = concatMap dependedVars' es
+dependedVars' DCExp{} = []
+dependedVars' (DIf e1 e2 e3 _) = dependedVars' e1 ++ dependedVars' e2 ++ dependedVars' e3
+dependedVars' IfNone = []
+dependedVars' (DCmprhnsnExp e ins _) = dependedVars' e ++ concatMap (dependedVars' . snd) ins
+dependedVars' DChoiceVID{} = []
+dependedVars' (DVExp v _) = [v]
+
+depGen :: DGen -> [DVar]
+depGen (DGenNvals _ e _) = dependedVars' e
+depGen (DGenG _ e _) = dependedVars' e
+
+depIn :: DIn -> [DVar]
+depIn (DIn _ e _) = dependedVars' e
+
+isAgg :: DExpr -> Bool
+isAgg DAggr{} = True
+isAgg _ = False

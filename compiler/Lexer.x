@@ -2,7 +2,7 @@
 module Lexer where
 }
 
-%wrapper "basic"
+%wrapper "monadUserState"
 
 $digit = 0-9
 $alpha = [a-zA-Z]
@@ -12,97 +12,126 @@ tokens :-
 
     $white+                         ;
     "--".*                          ;
-    $digit+                         { \s -> TokenInt (read s) }
-    [1-9][0-9]* "." [0-9]+          { \s -> TokenDouble (read s) }
-    "0."[0-9]+                      { \s -> TokenDouble (read s) }
-    "True"                          { \s -> TokenBool (read s) }
-    "False"                         { \s -> TokenBool (read s) }
-    "V"                             { \_ -> TokenV }
-    "("                             { \_ -> TokenLParen }
-    ")"                             { \_ -> TokenRParen }
-    "+"                             { \_ -> TokenPlus }
-    "-"                             { \_ -> TokenMinus }
-    "*"                             { \_ -> TokenMul }
-    "/"                             { \_ -> TokenDev }
-    "empty"                         { \_ -> TokenEmpty }
-    "not"                           { \_ -> TokenNot }
-    "!!"                            { \_ -> TokenOr }
-    "&&"                            { \_ -> TokenAnd }
+    "{-" * "-}"                     ;
+    $digit+                         { mkTokenRead TokenInt }
+    [1-9][0-9]* "." [0-9]+          { mkTokenRead TokenDouble }
+    "0."[0-9]+                      { mkTokenRead TokenDouble }
+    "True"                          { mkTokenRead TokenBool }
+    "False"                         { mkTokenRead TokenBool }
+    "V"                             { mkToken TokenV }
+    "("                             { mkToken TokenLParen }
+    ")"                             { mkToken TokenRParen }
+    "+"                             { mkToken TokenPlus }
+    "-"                             { mkToken TokenMinus }
+    "*"                             { mkToken TokenMul }
+    "/"                             { mkToken TokenDev }
+    "empty"                         { mkToken TokenEmpty }
+    "not"                           { mkToken TokenNot }
+    "!!"                            { mkToken TokenOr }
+    "&&"                            { mkToken TokenAnd }
 
-    "{"                             { \_ -> TokenLCurly }
-    "}"                             { \_ -> TokenRCurly }
-    "["                             { \_ -> TokenLBrack }
-    "]"                             { \_ -> TokenRBrack}
+    "{"                             { mkToken TokenLCurly }
+    "}"                             { mkToken TokenRCurly }
+    "["                             { mkToken TokenLBrack }
+    "]"                             { mkToken TokenRBrack}
 
-    "if"                            { \_ -> TokenIf }
-    "then"                          { \_ -> TokenThen }
-    "else"                          { \_ -> TokenElse }
-    "while"                         { \_ -> TokenWhile }
-    "return"                        { \_ -> TokenReturn }
+    "if"                            { mkToken TokenIf }
+    "then"                          { mkToken TokenThen }
+    "else"                          { mkToken TokenElse }
+    "while"                         { mkToken TokenWhile }
+    "return"                        { mkToken TokenReturn }
 
-    ";"                             { \_ -> TokenSemiColon }
-    "="                             { \_ -> TokenEqual }
-
-
-    ">=" | "<=" | ">" | "<" | "==" | "!="   { \s -> TokenCmp s }
-
-    "minimum"                       { \_ -> TokenAggMin }
-    "maximum"                       { \_ -> TokenAggMax }
-    "sum"                           { \_ -> TokenAggSum }
-    "prod"                          { \_ -> TokenAggProd }
-    "and"                           { \_ -> TokenAggAnd }
-    "or"                            { \_ -> TokenAggOr } 
-    "<-"                            { \_ -> TokenLArrow }
-    "in"                            { \_ -> TokenIn } 
-    "nvals"                         { \_ -> TokenNvals }
-    ","                             { \_ -> TokenComma }
-    "|"                             { \_ -> TokenVbar }
+    ";"                             { mkToken TokenSemiColon }
+    "="                             { mkToken TokenEqual }
 
 
-    $upper "'"*                     { \s -> TokenUpper s}
-    $alpha [$alpha $digit \_ \"]*   { \s -> TokenString s}
+    ">=" | "<=" | ">" | "<" | "==" | "!="   { mkTokenStr TokenCmp }
+
+    "minimum"                       { mkToken TokenAggMin }
+    "maximum"                       { mkToken TokenAggMax }
+    "sum"                           { mkToken TokenAggSum }
+    "prod"                          { mkToken TokenAggProd }
+    "and"                           { mkToken TokenAggAnd }
+    "or"                            { mkToken TokenAggOr } 
+    "<-"                            { mkToken TokenLArrow }
+    "in"                            { mkToken TokenIn } 
+    "nvals"                         { mkToken TokenNvals }
+    ","                             { mkToken TokenComma }
+    "|"                             { mkToken TokenVbar }
+
+
+    $upper "'"*                     { mkTokenStr TokenUpper }
+    $alpha [$alpha $digit \_ \"]*   { mkTokenStr TokenString }
 
 {
-data Token = TokenInt Int
-           | TokenDouble Double
-           | TokenBool Bool
-           | TokenV
-           | TokenEmpty
-           | TokenLParen
-           | TokenRParen
-           | TokenPlus
-           | TokenMinus
-           | TokenMul
-           | TokenDev
-           | TokenUpper String
-           | TokenString String
-           | TokenCmp String
-           | TokenNot
-           | TokenOr
-           | TokenAnd
-           | TokenLCurly
-           | TokenRCurly
-           | TokenIf
-           | TokenThen
-           | TokenElse
-           | TokenWhile
-           | TokenSemiColon
-           | TokenEqual
-           | TokenReturn
-           | TokenAggMin
-           | TokenAggMax
-           | TokenAggSum
-           | TokenAggProd 
-           | TokenAggAnd
-           | TokenAggOr
-           | TokenLArrow 
-           | TokenIn
-           | TokenNvals
-           | TokenComma
-           | TokenLBrack
-           | TokenRBrack
-           | TokenVbar
-           | TokenGenV
-           | TokenGenNvalsV
-           deriving (Eq,Show)
+data TokenData = TokenInt Int
+                | TokenDouble Double
+                | TokenBool Bool
+                | TokenV
+                | TokenEmpty
+                | TokenLParen
+                | TokenRParen
+                | TokenPlus
+                | TokenMinus
+                | TokenMul
+                | TokenDev
+                | TokenUpper String
+                | TokenString String
+                | TokenCmp String
+                | TokenNot
+                | TokenOr
+                | TokenAnd
+                | TokenLCurly
+                | TokenRCurly
+                | TokenIf
+                | TokenThen
+                | TokenElse
+                | TokenWhile
+                | TokenSemiColon
+                | TokenEqual
+                | TokenReturn
+                | TokenAggMin
+                | TokenAggMax
+                | TokenAggSum
+                | TokenAggProd 
+                | TokenAggAnd
+                | TokenAggOr
+                | TokenLArrow 
+                | TokenIn
+                | TokenNvals
+                | TokenComma
+                | TokenLBrack
+                | TokenRBrack
+                | TokenVbar
+                | TokenGenV
+                | TokenGenNvalsV
+                deriving (Eq,Show)
+
+data Token = Token TokenData AlexPosn
+            | Eof
+
+data AlexUserState = AlexUserState
+                   {
+                       scope :: Int
+                   }
+
+alexInitUserState :: AlexUserState
+alexInitUserState = AlexUserState
+                   {
+                       scope = 0
+                   }
+
+mkTokenRead :: Read a => (a -> TokenData) -> AlexInput -> Int -> Alex Token
+mkTokenRead tk (pos,_,_,str) len = return $ Token (tk $ read tokenStr) pos
+    where tokenStr = take len str
+
+mkTokenStr :: (String -> TokenData) -> AlexInput -> Int -> Alex Token
+mkTokenStr tk (pos,_,_,str) len = return $ Token (tk tokenStr) pos
+    where tokenStr = take len str
+
+mkToken :: TokenData -> AlexInput -> Int -> Alex Token
+mkToken tk = mkTokenStr (\_ -> tk)
+
+alexEOF :: Alex Token
+alexEOF = return Eof
 }

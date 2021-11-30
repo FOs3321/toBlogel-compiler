@@ -5,54 +5,56 @@ import Spec
 }
 
 %name parser
+%lexer { lexer } { Eof }
+%monad { Alex }
 %tokentype { Token }
 %error { parseError }
 
 %token
-    INT         { TokenInt $$ }
-    DOUBLE      { TokenDouble $$ }
-    BOOL        { TokenBool $$ }
-    'empty'     { TokenEmpty }
-    'V'         { TokenV }
-    'not'       { TokenNot }
-    '('         { TokenLParen }
-    ')'         { TokenRParen }
-    '+'         { TokenPlus }
-    '-'         { TokenMinus }
-    '*'         { TokenMul }
-    '/'         { TokenDev }
-    CMP         { TokenCmp $$ }
-    '!!'        { TokenOr }
-    '&&'        { TokenAnd }
+    INT         { Token (TokenInt $$) _ }
+    DOUBLE      { Token (TokenDouble $$)_ }
+    BOOL        { Token (TokenBool $$) _ }
+    'empty'     { Token (TokenEmpty) _ }
+    'V'         { Token (TokenV) _ }
+    'not'       { Token (TokenNot) _ }
+    '('         { Token (TokenLParen) _ }
+    ')'         { Token (TokenRParen) _ }
+    '+'         { Token (TokenPlus) _ }
+    '-'         { Token (TokenMinus) _ }
+    '*'         { Token (TokenMul) _ }
+    '/'         { Token (TokenDev) _ }
+    CMP         { Token (TokenCmp $$) _ }
+    '!!'        { Token (TokenOr) _ }
+    '&&'        { Token (TokenAnd) _ }
 
-    '{'         { TokenLCurly }
-    '}'         { TokenRCurly }
-    'if'        { TokenIf }
-    'then'      { TokenThen }
-    'else'      { TokenElse }
-    'while'     { TokenWhile }
-    ';'         { TokenSemiColon }
-    '='         { TokenEqual }   
-    'return'    { TokenReturn }
+    '{'         { Token (TokenLCurly) _ }
+    '}'         { Token (TokenRCurly) _ }
+    'if'        { Token (TokenIf) _ }
+    'then'      { Token (TokenThen) _ }
+    'else'      { Token (TokenElse) _ }
+    'while'     { Token (TokenWhile) _ }
+    ';'         { Token (TokenSemiColon) _ }
+    '='         { Token (TokenEqual) _ }   
+    'return'    { Token (TokenReturn) _ }
 
-    'minimum'   { TokenAggMin }
-    'maximum'   { TokenAggMax }
-    'sum'       { TokenAggSum }
-    'prod'      { TokenAggProd }
-    'and'       { TokenAggAnd }
-    'or'        { TokenAggOr }   
+    'minimum'   { Token (TokenAggMin) _ }
+    'maximum'   { Token (TokenAggMax) _ }
+    'sum'       { Token (TokenAggSum) _ }
+    'prod'      { Token (TokenAggProd) _ }
+    'and'       { Token (TokenAggAnd) _ }
+    'or'        { Token (TokenAggOr) _ }   
 
-    '<-'        { TokenLArrow }
-    'in'        { TokenIn }
-    'nvals'     { TokenNvals }
-    ','         { TokenComma }
-    '['         { TokenLBrack }
-    ']'         { TokenRBrack }
-    '|'         { TokenVbar }
+    '<-'        { Token (TokenLArrow) _ }
+    'in'        { Token (TokenIn) _ }
+    'nvals'     { Token (TokenNvals) _ }
+    ','         { Token (TokenComma) _ }
+    '['         { Token (TokenLBrack) _ }
+    ']'         { Token (TokenRBrack) _ }
+    '|'         { Token (TokenVbar) _ }
 
 
-    UPPER       { TokenUpper $$ }
-    STRING      { TokenString $$ }
+    UPPER       { Token (TokenUpper $$) _ }
+    STRING      { Token (TokenString $$) _ }
 
 
 %left '!!'
@@ -75,11 +77,11 @@ mainDef     : fun '(' ')' '{' statements '}'    { DMainDef $1 (reverse $5) }
 statements  : statement                         { [$1] }
             | statements statement              { $2 : $1 }
 
-statement : var '=' expr ';'                                                        { DVarDef $1 $3 None }
+statement : var '=' expr ';'                                                        { DVarDef $1 $3 }
           | 'if' '(' expr ')' 'then' '{' statements '}' 'else' '{' statements '}'   { DIfDef $3 (reverse $7) (reverse $11) }
           | 'if' '(' expr ')' 'then' '{' statements '}'                             { DIfDef $3 (reverse $7) [] }
-          | 'while' '(' expr ')' '{' statements '}'                                 { DLoopDef $3 (reverse $6) None 0 [] }
-          | 'return' var ';'                                                        { DReturnDef $2 None }
+          | 'while' '(' expr ')' '{' statements '}'                                 { DLoopDef $3 (reverse $6)}
+          | 'return' var ';'                                                        { DReturnDef $2 }
 
 expr    : expr4               { $1 }
 
@@ -102,9 +104,9 @@ expr2   : '-' expr1         { DFunAp (DFun "neg" ) [$2] None }
         | expr1             { $1 }
 
 expr1   : '{' expr3 '|' '(' vars ')' '<-' '(' expr0s ')' '}'
-                                                { DCmprhnsnExp $2 (zip (reverse $5) (reverse $9)) }
-        | '{' expr3 '|' var '<-' expr0 '}'      { DCmprhnsnExp $2 [($4,$6)] }
-        | '{' expr3 '}'                         { DCmprhnsnExp $2 [] }
+                                                { DCmprhnsnExp $2 (zip (reverse $5) (reverse $9)) None}
+        | '{' expr3 '|' var '<-' expr0 '}'      { DCmprhnsnExp $2 [($4,$6)] None}
+        | '{' expr3 '}'                         { DCmprhnsnExp $2 [] None}
         | agg '[' expr '|' gen inExprs ']'      { DAggr $1 $3 $5 (reverse $6) None }
         | expr0                                 { $1 }
 
@@ -136,8 +138,8 @@ agg     : 'minimum'         { DAggMin }
         | 'and'             { DAggAnd }
         | 'or'              { DAggOr }
 
-gen     : var '<-' 'nvals' expr1 { if ($4 == (DCExp DCAllV None)) then ( DGenNvalsV $1 DCAllV  None ) else ( DGenNvals $1 $4 None )  }
-        | var '<-'  expr1        { if ($3 == (DCExp DCAllV None)) then ( DGenGV $1 DCAllV  None ) else ( DGenG $1 $3 None ) }
+gen     : var '<-' 'nvals' expr1 { DGenNvals $1 $4 None }
+        | var '<-'  expr1        { DGenG $1 $3 None }
 
 const   : INT               { DCInt $1 DTInt }
         | DOUBLE            { DCDouble $1 DTDouble }
@@ -149,12 +151,20 @@ fun     : STRING            { DFun $1 }
 
 var     : STRING            { DVar $1 0 None }
         | UPPER             { DVarV $1 0 }
-        | STRING '(' var ')'{ DFunV $1 $3 }
+        | STRING '(' var ')'{ DFunV $1 $3 None }
 
 
 {
     
-parseError :: [Token] -> a    
-parseError x = error $ "Parse error" ++ show x
+lexer :: (Token -> Alex a) -> Alex a
+lexer = (alexMonadScan >>=)
+
+parseError :: Token -> Alex a    
+parseError (Token token pos) = alexError $ "Parse error" ++ show pos
+
+parse s = runAlex s parser
+
+ps :: AlexState -> AlexState
+ps s@AlexState{alex_ust=AlexUserState{scope = sc}} = s{alex_ust = AlexUserState{scope = sc + 1}}
 
 }
