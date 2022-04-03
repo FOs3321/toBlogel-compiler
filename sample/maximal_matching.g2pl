@@ -1,0 +1,27 @@
+-- maximal matching algorithm
+-- Byungnam LIM and Yon Dohn CHUNG
+-- A Parallel Maximal Matching Algorithm for Large Graphs Using Pregel
+-- https://www.jstage.jst.go.jp/article/transinf/E97.D/7/E97.D_1910/_article
+
+mm(){
+    R = empty;
+    S = V;
+    while (S != empty){
+        minid = minDegs(S);
+		A = f(S);
+        B = union[ [u,v] | (u,v) <- A];  -- { { or[ True| u <- nvals v, v in A, u in A] } | v <- A }
+		R = R || A;
+        S = S \ B;
+    }
+    return R;
+}
+ 
+--f(X) = { id u == minid v && id v == minid u | (u,v) <- E, u in X, v in X}
+
+f(X) = {u == v && v == u | (u,v) <- E, u in X, v in X};
+
+        -- f(X) = {uid == vminid && vid == uminid | ((uid,vid), (uminid,vminid)) <- (id, minid), u in X, v in X}
+
+NumDegs(X)  = { sum [ 1.0 | u <- nvals v, u in X ] | v <- V};
+minDegs(X)  = { argmin [ u | u <- nvals v, u in X] | v <- NumDegs(X)};
+

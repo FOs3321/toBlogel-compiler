@@ -1,0 +1,6 @@
+mst(){
+    R = empty;
+    F = V;
+    minID = min[i | i <- ID(V)];
+    while ( or[ minID == i | i <- F] )
+}

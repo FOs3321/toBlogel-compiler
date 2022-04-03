@@ -1,0 +1,10 @@
+bm(){
+    R = empty;
+    A = { -1 | _ <- V };
+    V1 = { id(v) % 2 == 0 | v <- V };
+    V2 = { id(v) % 2 == 1 | v <- V };
+    while(or[ v == -1 | v <- A]) {
+        T1 = {random[ u | u <- nvals v] | v <- V1};
+    }
+
+}
