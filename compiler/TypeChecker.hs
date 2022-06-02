@@ -207,6 +207,7 @@ initEnv = do
   put
     ( [ ("||", DTFun [] DTBool),
         ("&&", DTFun [] DTBool),
+        ("\\", DTFun [] DTBool),
         ("==", DTFun [] DTBool),
         ("!=", DTFun [] DTBool),
         ("not", DTFun [] DTBool),

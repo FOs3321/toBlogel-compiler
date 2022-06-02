@@ -26,6 +26,7 @@ import Spec
     CMP         { Token (TokenCmp $$) _ }
     '!!'        { Token (TokenOr) _ }
     '&&'        { Token (TokenAnd) _ }
+    '\\'         { Token (TokenDiff) _ }
 
     '{'         { Token (TokenLCurly) _ }
     '}'         { Token (TokenRCurly) _ }
@@ -59,6 +60,7 @@ import Spec
 
 %left '!!'
 %left '&&'
+%left '\\'
 %nonassoc CMP
 %left '+' '-'
 %left '*' '/'
@@ -92,6 +94,7 @@ expr4   : 'if' '(' expr3 ')' 'then' '{' expr3 '}' 'else' '{' expr3 '}'  { DIf $3
 
 expr3   : expr3 '!!' expr3    { DFunAp (DBinOp "||") [$1, $3] None }
         | expr3 '&&' expr3    { DFunAp (DBinOp "&&") [$1, $3] None }
+        | expr3 '\\' expr3     { DFunAp (DBinOp "\\") [$1, $3] None }
         | expr3 CMP expr3     { DFunAp (DBinOp $2) [$1, $3] None }
         | expr3 '+' expr3     { DFunAp (DBinOp "+") [$1, $3] None }
         | expr3 '-' expr3     { DFunAp (DBinOp "-") [$1, $3] None }
