@@ -1,9 +1,8 @@
 HSFILES = Parser.hs \
 		  Lexer.hs
 
-
 all: ${HSFILES}
-	ghc --make -o cmplr
+	ghc --make Main.hs -o cmplr
 
 Parser.hs: Parser.y
 	happy $<
